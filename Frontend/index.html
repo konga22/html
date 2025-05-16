@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>KONGA - Crypto Chart</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Lightweight Charts CDN (반드시 script.js보다 위에!) -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo" id="nickname-area" style="opacity:0; transform:translateX(-40px); pointer-events:none;">KONGA</div>
+            <button id="logout-btn" style="display:none; margin-top:10px; margin-bottom:10px; background:#23263a; color:#fff; border:none; border-radius:8px; padding:6px 18px; font-size:1rem; cursor:pointer;">로그아웃</button>
+            <div class="clock" id="realtime-clock"></div>
+            <div class="market-info">
+                <div class="pair">BTC/KRW</div>
+                <div class="price" id="current-price">-</div>
+                <div class="change" id="price-change">-</div>
+                <div class="stats">
+                    <div>24h 고가<br><span id="high-24h">-</span></div>
+                    <div>24h 저가<br><span id="low-24h">-</span></div>
+                    <div>24h 거래량<br><span id="volume-24h">-</span></div>
+                </div>
+            </div>
+        </aside>
+        <main class="main">
+            <div class="chart-controls">
+                <button class="timeframe-btn active" data-interval="1">1m</button>
+                <button class="timeframe-btn" data-interval="5">5m</button>
+                <button class="timeframe-btn" data-interval="15">15m</button>
+                <button class="timeframe-btn" data-interval="60">1h</button>
+                <button class="timeframe-btn" data-interval="240">4h</button>
+                <button class="timeframe-btn" data-interval="D">1d</button>
+            </div>
+            <div id="chart-container"></div>
+        </main>
+    </div>
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-container jelly">
+            <h1>KONGA</h1>
+            <form id="login-form">
+                <input type="text" id="login-email" placeholder="이메일" autocomplete="username" required>
+                <input type="password" id="login-password" placeholder="비밀번호" autocomplete="current-password" required>
+                <button type="submit">로그인</button>
+            </form>
+            <div id="login-error" class="error-message"></div>
+            <div class="switch-auth">
+                계정이 없으신가요? <span id="show-signup" class="auth-link">회원가입</span>
+            </div>
+            <form id="signup-form" style="display:none;">
+                <input type="text" id="signup-nickname" placeholder="닉네임" required>
+                <button type="button" id="check-nickname-btn">닉네임 중복확인</button>
+                <div id="nickname-check-result" class="error-message"></div>
+                <input type="text" id="signup-email" placeholder="이메일" required>
+                <input type="password" id="signup-password" placeholder="비밀번호" required>
+                <input type="password" id="signup-password2" placeholder="비밀번호 확인" required>
+                <button type="submit">회원가입</button>
+            </form>
+            <div id="signup-error" class="error-message"></div>
+            <div class="switch-auth" id="back-to-login" style="display:none;">
+                이미 계정이 있으신가요? <span class="auth-link">로그인</span>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
