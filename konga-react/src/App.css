@@ -1,0 +1,655 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+body {
+  background: #1e222d;
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background 0.5s, color 0.5s;
+}
+
+body.dark {
+  background: #213448;
+  color: #f5f6fa;
+  transition: background 0.5s, color 0.5s;
+}
+body.light {
+  background: #B3C8CF !important;   /* 바디 배경 */
+  color: #23263a;
+  transition: background 0.5s, color 0.5s;
+}
+body.light .sidebar,
+body.light .mypage-container,
+body.light .auth-modal-card {
+  background: #ECEFCA;
+  color: #23263a;
+}
+body.light .mypage-info {
+  background: #f0f2f7;
+}
+body.light .mypage-form input {
+  background: #f0f2f7;
+  color: #23263a;
+}
+body.light .mypage-update-btn {
+  background: #3b82f6;
+  color: #fff;
+}
+body.light .mypage-logout-btn {
+  background: #ef4444;
+  color: #fff;
+}
+body.light .chart-controls .timeframe-btn {
+  background: #e0e4ef;
+  color: #23263a;
+}
+body.light .chart-controls .timeframe-btn.active {
+  background: #3db2ff;
+  color: #fff;
+}
+body.light .sidebar-animated {
+  background: #89A8B2 !important;   /* 사이드바 배경 */
+  color: #23263a !important;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.04);
+}
+
+.auth-overlay {
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s, visibility 0.5s;
+    opacity: 1;
+    visibility: visible;
+}
+.auth-overlay.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+.auth-container {
+    background: rgba(35,38,58,0.95);
+    border-radius: 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 48px 36px 36px 36px;
+    min-width: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: jelly-pop 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes jelly-pop {
+    0%   { transform: scale(0.92, 1.08); }
+    60%  { transform: scale(1.04, 0.96); }
+    80%  { transform: scale(0.98, 1.02); }
+    100% { transform: scale(1, 1); }
+}
+.auth-container h1 {
+    color: #3db2ff;
+    margin-bottom: 28px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+}
+.auth-container input {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    background: #181c24;
+    color: #fff;
+    outline: none;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(61,178,255,0.08);
+}
+.auth-container input:focus {
+    background: #23263a;
+    box-shadow: 0 4px 16px rgba(61,178,255,0.18);
+}
+.auth-container button {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #3db2ff;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.2s;
+}
+.auth-container button:hover {
+    background: #2692d6;
+    transform: scale(1.04);
+}
+.error-message {
+    color: #ff3b30;
+    margin-top: 12px;
+    font-size: 1rem;
+    min-height: 24px;
+    text-align: center;
+}
+.switch-auth {
+    margin-top: 18px;
+    color: #b0b8c1;
+    font-size: 0.98rem;
+    text-align: center;
+}
+.auth-link {
+    color: #3db2ff;
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 4px;
+    text-decoration: underline;
+}
+
+.mypage-container {
+  background: #23263a;
+  color: #fff;
+  border-radius: 24px;
+  padding: 36px 28px 28px 28px;
+  max-width: 400px;
+  margin: 48px auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  animation: fadeInUp 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(40px);}
+  100% { opacity: 1; transform: translateY(0);}
+}
+
+.mypage-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #3db2ff;
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.2s;
+}
+.mypage-close-btn:hover {
+  color: #ff3b30;
+}
+
+.mypage-info {
+  background: #181c24;
+  border-radius: 14px;
+  padding: 18px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mypage-label {
+  color: #b0b8c1;
+  font-size: 1.05rem;
+  margin-right: 8px;
+}
+.mypage-value {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+
+.mypage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mypage-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.05rem;
+  color: #b0b8c1;
+  margin-bottom: 2px;
+}
+.mypage-form input {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #181c24;
+  color: #fff;
+  font-size: 1rem;
+}
+.mypage-update-btn {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #3db2ff;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mypage-update-btn:hover {
+  background: #2692d6;
+}
+.mypage-message {
+  color: #3db2ff;
+  margin-top: 10px;
+  min-height: 24px;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.mypage-logout-btn {
+  background: #ff3b30;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mypage-logout-btn:hover {
+  background: #c82333;
+}
+
+.sidebar-animated {
+  background: #262b36;
+  color: #f5f6fa;
+  transition: background 0.5s, color 0.5s;
+}
+body.dark .sidebar-animated {
+  background: #222831 !important;  /* 사이드바 배경: 딥 차콜 (원래 바디 색) */
+  color: #f5f6fa !important;
+}
+
+.blur-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(.68,-0.55,.27,1.55), backdrop-filter 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+.blur-out {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+}
+
+.auth-modal-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 101;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.auth-in {
+  opacity: 1 !important;
+  transform: scale(1);
+  animation: jelly-in 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.auth-out {
+  opacity: 0;
+  transform: scale(0.8);
+  animation: jelly-out 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.auth-modal-card {
+  z-index: 1001;
+  position: relative;
+  background: #23263a;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+  padding: 48px 36px 36px 36px;
+  min-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: jelly-pop 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+  pointer-events: auto;
+}
+
+@keyframes jelly-pop {
+  0%   { transform: scale(0.92, 1.08); }
+  60%  { transform: scale(1.04, 0.96); }
+  80%  { transform: scale(0.98, 1.02); }
+  100% { transform: scale(1, 1); }
+}
+
+.auth-modal-card h1 {
+  color: #3db2ff;
+  margin-bottom: 28px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.auth-modal-card form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 16px;
+}
+
+.auth-modal-card input {
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  background: #181c24;
+  color: #fff;
+  outline: none;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(61,178,255,0.08);
+}
+
+.auth-modal-card input:focus {
+  background: #23263a;
+  box-shadow: 0 4px 16px rgba(61,178,255,0.18);
+}
+
+.auth-modal-card button[type="submit"] {
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #3db2ff;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.auth-modal-card button[type="submit"]:hover {
+  background: #2692d6;
+  transform: scale(1.04);
+}
+
+.auth-modal-card button[type="button"] {
+  margin-bottom: 0;
+  background: #23263a;
+  color: #3db2ff;
+  border: 1px solid #3db2ff;
+  font-size: 0.95rem;
+  padding: 8px 0;
+  border-radius: 8px;
+  margin-top: 0;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.auth-modal-card button[type="button"]:hover {
+  background: #3db2ff;
+  color: #fff;
+}
+
+.error-message {
+  color: #ff3b30;
+  margin-top: 12px;
+  font-size: 1rem;
+  min-height: 24px;
+  text-align: center;
+}
+
+.switch-auth {
+  margin-top: 18px;
+  color: #b0b8c1;
+  font-size: 0.98rem;
+  text-align: center;
+}
+
+.auth-link {
+  color: #3db2ff;
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 4px;
+  text-decoration: underline;
+}
+
+.greeting-animated {
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: slide-in-right 0.7s cubic-bezier(.68,-0.55,.27,1.55) 0.1s forwards;
+}
+.greeting-animated.out {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slide-out-left 0.5s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+}
+@keyframes slide-in-right {
+  0% { opacity: 0; transform: translateX(-40px);}
+  100% { opacity: 1; transform: translateX(0);}
+}
+@keyframes slide-out-left {
+  0% { opacity: 1; transform: translateX(0);}
+  100% { opacity: 0; transform: translateX(-40px);}
+}
+
+.user-menu-animated {
+  opacity: 0;
+  transform: translateY(-24px);
+  transition: opacity 0.5s cubic-bezier(.68,-0.55,.27,1.55), transform 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+  pointer-events: none;
+}
+.user-menu-animated.in,
+.user-menu-animated.user-menu-animated-in {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.user-menu-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.3s, color 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* 마이페이지(포인트) 버튼 */
+.user-menu-btn.point {
+  background: #3b82f6;   /* 모던 블루 */
+  color: #fff;
+}
+body.dark .user-menu-btn.point {
+  background: #60a5fa;   /* 밝은 블루 */
+  color: #23272f;
+}
+
+/* 로그아웃(위험) 버튼 */
+.user-menu-btn.logout {
+  background: #ef4444;   /* 모던 레드 */
+  color: #fff;
+}
+body.dark .user-menu-btn.logout {
+  background: #f87171;   /* 밝은 레드 */
+  color: #23272f;
+}
+
+/* 테마 전환 버튼(원형) */
+.theme-toggle-btn-unique {
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.3s, color 0.3s;
+}
+body.light .theme-toggle-btn-unique {
+  background: #BCCCDC;   /* 라이트모드 사이드바 색상 */
+  color: #23263a;
+}
+body.dark .theme-toggle-btn-unique {
+  background: #213448;
+  color: #f5f6fa;
+}
+
+.chart-top-buttons {
+  position: fixed;
+  top: 32px;
+  right: 48px;
+  z-index: 2001;
+  display: flex;
+  gap: 8px;
+}
+
+/* 마이페이지 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.08);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes jelly-in {
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.08); }
+  80%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+@keyframes jelly-out {
+  0%   { transform: scale(1); opacity: 1; }
+  40%  { transform: scale(1.08); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.main {
+  background: transparent;
+  transition: background 0.5s;
+}
+
+#root, .App {
+  background: transparent !important;
+}
+
+/* ====== 카드/내부 블록 ====== */
+.market-info {
+  background: #f0f2f7;
+  color: #23263a;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  margin-top: 18px;
+  transition: background 0.5s;
+}
+body.dark .market-info {
+  background: #23272f;
+}
+
+/* =========================
+   다크 모드 색상 (서로 바꾼 버전)
+   ========================= */
+body.dark {
+  background: #393E46;         /* 바디 배경: 어두운 블루그레이 (원래 사이드바 색) */
+  color: #f5f6fa;
+  transition: background 0.5s, color 0.5s;
+}
+
+body.dark .sidebar-animated {
+  background: #222831 !important;  /* 사이드바 배경: 딥 차콜 (원래 바디 색) */
+  color: #f5f6fa !important;
+}
