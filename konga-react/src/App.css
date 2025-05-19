@@ -583,7 +583,7 @@ body.dark .theme-toggle-btn-unique {
 }
 
 .modal-content {
-  background: #1a1a1a;
+  background: #1a1a1a00;
   border-radius: 12px;
   padding: 24px;
   width: 90%;

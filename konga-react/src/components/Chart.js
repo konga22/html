@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
+import isEqual from "lodash.isequal";
+import { timeParse } from "d3-time-format";
+
 
 const TIMEFRAMES = [
   { label: '1m', value: { unit: 'minutes', interval: 1 } },
@@ -10,52 +13,88 @@ const TIMEFRAMES = [
   { label: '1d', value: { unit: 'days', interval: 1 } },
 ];
 
-function Chart({ theme }) {
+const parseDate = timeParse("%Y-%m-%dT%H:%M:%S");
+
+function highlightKeywords(text) {
+  if (!text) return '';
+  return text
+    .replace(/상승세|골든크로스/g, '<span style="color:#1ca97c;font-weight:700;">$&</span>')
+    .replace(/하락세|데드크로스/g, '<span style="color:#d7263d;font-weight:700;">$&</span>')
+    .replace(/매수/g, '<span style="color:#1ca97c;font-weight:700;">$&</span>')
+    .replace(/매도/g, '<span style="color:#d7263d;font-weight:700;">$&</span>')
+    .replace(/과매수/g, '<span style="color:#f59e42;font-weight:700;">$&</span>')
+    .replace(/과매도/g, '<span style="color:#3b82f6;font-weight:700;">$&</span>')
+    .replace(/목표가/g, '<span style="color:#3db2ff;font-weight:700;">$&</span>')
+    .replace(/지정가/g, '<span style="color:#3db2ff;font-weight:700;">$&</span>');
+}
+
+function Chart({ theme, usdRate, setLastChartPrice }) {
   const chartContainerRef = useRef();
   const [data, setData] = useState([]);
   const [currentTimeframe, setCurrentTimeframe] = useState(TIMEFRAMES[0]);
   const [tooltip, setTooltip] = useState(null);
 
-  // 캔들 데이터 가져오기
-  async function fetchCandleData(timeframe = currentTimeframe) {
-    const { unit, interval } = timeframe.value;
-    const response = await fetch(
-      `http://localhost:4000/api/candles/${unit}/${interval}?market=KRW-BTC&count=100`
-    );
-    let result = await response.json();
+  // 차트와 시리즈 참조 저장
+  const chartRef = useRef();
+  const seriesRef = useRef();
 
-    if (!result || (Array.isArray(result) && result.length === 0)) {
-      setData([]);
-      return;
-    }
-    if (!Array.isArray(result)) {
-      result = [result];
-    }
+  // 뷰포트 위치 저장용
+  const lastRangeRef = useRef();
 
-    const chartData = result
-      .map(d => ({
-        time: Math.floor(new Date(d.candle_date_time_kst).getTime() / 1000),
-        open: d.opening_price,
-        high: d.high_price,
-        low: d.low_price,
-        close: d.trade_price,
-      }))
-      .reverse();
-    setData(chartData);
-  }
+  // 1. 추천 전략 상태 추가
+  const [strategy, setStrategy] = useState({ summary: '', detail: '' });
 
+  // 예시: currentTimeframe.value.interval, currentTimeframe.value.unit 사용
+  const intervalMap = {
+    minutes: { 1: '1m', 5: '5m', 15: '15m', 60: '1h', 240: '4h' },
+    days: { 1: '1d' }
+  };
+  const intervalStr = intervalMap[currentTimeframe.value.unit][currentTimeframe.value.interval];
+
+  // 2. 전략 메시지 받아오는 useEffect 추가
   useEffect(() => {
-    fetchCandleData();
-    const interval = setInterval(() => fetchCandleData(), 3000);
+    async function fetchStrategy() {
+      const res = await fetch(`http://localhost:4000/api/strategy?interval=${intervalStr}`);
+      const data = await res.json();
+      setStrategy(data);
+    }
+    fetchStrategy();
+    const interval = setInterval(fetchStrategy, 60 * 60 * 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [currentTimeframe]);
+  }, [intervalStr]);
+
+  // 캔들 데이터 가져오기
+  useEffect(() => {
+    async function fetchGlobalCandleData() {
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${intervalStr}&limit=100`);
+      const result = await res.json();
+      const chartData = result.map(d => ({
+        time: Math.floor(d[0] / 1000),
+        open: parseFloat(d[1]),
+        high: parseFloat(d[2]),
+        low: parseFloat(d[3]),
+        close: parseFloat(d[4]),
+        volume: parseFloat(d[5])
+      }));
+      setData(chartData);
+      // 마지막 가격을 상위로 전달
+      if (setLastChartPrice && chartData.length > 0) {
+        setLastChartPrice(chartData[chartData.length - 1].close);
+      }
+    }
+    fetchGlobalCandleData();
+    const intervalId = setInterval(fetchGlobalCandleData, 3000);
+    return () => clearInterval(intervalId);
+  }, [intervalStr, setLastChartPrice]);
 
   useEffect(() => {
     if (!data.length) return;
-    const chart = createChart(chartContainerRef.current, {
+    setTooltip(null);
+
+    // 차트 생성
+    chartRef.current = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
-      height: 500,
+      height: 400,
       layout: {
         background: {
           color: theme === 'dark' ? '#393E46' : '#B3C8CF'
@@ -83,7 +122,7 @@ function Chart({ theme }) {
       },
     });
 
-    const candleSeries = chart.addCandlestickSeries({
+    seriesRef.current = chartRef.current.addCandlestickSeries({
       upColor: theme === 'dark' ? '#34c759' : '#1ca97c',
       downColor: theme === 'dark' ? '#ff3b30' : '#d7263d',
       borderUpColor: theme === 'dark' ? '#34c759' : '#1ca97c',
@@ -92,9 +131,22 @@ function Chart({ theme }) {
       wickDownColor: theme === 'dark' ? '#ff3b30' : '#d7263d',
     });
 
-    candleSeries.setData(data);
+    // 차트 뷰포트 변경 감지
+    chartRef.current.timeScale().subscribeVisibleLogicalRangeChange(range => {
+      lastRangeRef.current = range;
+    });
 
-    chart.subscribeCrosshairMove(param => {
+    seriesRef.current.setData(data);
+
+    seriesRef.current.applyOptions({
+      priceFormat: {
+        type: 'price',
+        minMove: 0.01,
+        precision: 2,
+      }
+    });
+
+    chartRef.current.subscribeCrosshairMove(param => {
       if (
         !param ||
         param.time === undefined ||
@@ -104,11 +156,18 @@ function Chart({ theme }) {
         setTooltip(null);
         return;
       }
-      const price = param.seriesPrices.get(candleSeries);
+      const price = param.seriesPrices.get(seriesRef.current);
       if (!price || !param.point) {
         setTooltip(null);
         return;
       }
+      // 반드시 이 줄이 콘솔에 찍히는지 확인!
+      console.log('툴크 값:', {
+        time: param.time,
+        ...price,
+        x: param.point.x,
+        y: param.point.y,
+      });
       setTooltip({
         time: param.time,
         ...price,
@@ -118,18 +177,30 @@ function Chart({ theme }) {
     });
 
     const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
     };
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      chart.remove();
+      chartRef.current.remove();
     };
   }, [data, theme]);
 
+  useEffect(() => {
+    // 데이터 갱신 시
+    if (seriesRef.current) {
+      seriesRef.current.setData(data);
+
+      // 사용자가 맨 끝을 보고 있지 않으면, 이전 뷰포트로 복원
+      if (lastRangeRef.current) {
+        chartRef.current.timeScale().setVisibleLogicalRange(lastRangeRef.current);
+      }
+    }
+  }, [data]);
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', marginTop: '32px', marginBottom: '0' }}>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '18px' }}>
         {TIMEFRAMES.map(tf => (
           <button
@@ -155,19 +226,18 @@ function Chart({ theme }) {
         ref={chartContainerRef}
         style={{
           width: '100%',
-          height: '500px',
+          height: '400px',
           margin: '0 auto',
           borderRadius: '12px',
           background: theme === 'dark' ? '#393E46' : '#B3C8CF',
         }}
       />
-      {/* 툴팁 */}
       {tooltip && (
         <div
           style={{
             position: 'absolute',
             left: Math.min(Math.max(tooltip.x + 20, 0), (chartContainerRef.current?.clientWidth || 600) - 120),
-            top: Math.min(Math.max(tooltip.y, 0), 500 - 100),
+            top: Math.min(Math.max(tooltip.y, 0), 400 - 100),
             background: theme === 'dark' ? 'rgba(40,40,60,0.95)' : 'rgba(255,255,255,0.95)',
             color: theme === 'dark' ? '#fff' : '#23263a',
             padding: '10px 16px',
@@ -184,8 +254,51 @@ function Chart({ theme }) {
           <div>종가: {tooltip.close}</div>
         </div>
       )}
+      {/* 추천 전략 안내글 */}
+      <div style={{
+        marginTop: 18,
+        padding: '14px 18px',
+        background: theme === 'dark' ? '#23263a' : '#e6ecf1',
+        color: theme === 'dark' ? '#f5f6fa' : '#23263a',
+        borderRadius: 10,
+        fontSize: 16,
+        fontWeight: 500,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <span style={{ color: '#3db2ff', fontWeight: 700, marginBottom: 4 }}>추천 전략</span>
+        <span
+          dangerouslySetInnerHTML={{ __html: highlightKeywords(strategy.summary) }}
+        />
+        {strategy.detail && (
+          <div style={{
+            marginTop: 8,
+            fontSize: 13,
+            color: theme === 'dark' ? '#b0b8c1' : '#6b7684',
+            fontWeight: 500,
+            textAlign: 'center'
+          }}
+          dangerouslySetInnerHTML={{ __html: strategy.detail }}
+          />
+        )}
+        {strategy.buyJudgement && (
+          <div style={{
+            marginTop: 6,
+            fontSize: 13,
+            fontWeight: 600,
+            textAlign: 'center'
+          }}
+          dangerouslySetInnerHTML={{ __html: strategy.buyJudgement }}
+          />
+        )}
+      </div>
     </div>
   );
 }
+
+
 
 export default Chart;

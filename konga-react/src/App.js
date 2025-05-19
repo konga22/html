@@ -5,6 +5,7 @@ import Chart from './components/Chart';
 import AuthModal from './components/AuthModal';
 import MyPage from './components/MyPage';
 import ThemeToggleButton from './components/ThemeToggleButton';
+import PositionPanel from './components/PositionPanel';
 import './App.css';
 
 function MainPage({ user, priceInfo, onMyPage, onLogout }) {
@@ -64,8 +65,11 @@ function App() {
   const [greetingOut, setGreetingOut] = useState(false);
   const [authOut, setAuthOut] = useState(false);
   const [authIn, setAuthIn] = useState(false);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
   const [themeTrans, setThemeTrans] = useState(false); // 테마 전환 애니메이션용
+  const [usdRate, setUsdRate] = useState(1350); // 임시 환율, 실제로는 API로 받아올 수 있음
+  const [btcUsd, setBtcUsd] = useState(null);
+  const [lastChartPrice, setLastChartPrice] = useState(null);
 
   // 실시간 시계
   useEffect(() => {
@@ -155,9 +159,36 @@ function App() {
   };
 
   useEffect(() => {
+    document.body.classList.add('dark');
+    return () => document.body.classList.remove('dark');
+  }, []);
+
+  useEffect(() => {
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
   }, [theme]);
+
+  // 환율 API로 실시간 환율 받아오기 (선택)
+  useEffect(() => {
+    fetch('https://api.exchangerate.host/latest?base=KRW&symbols=USD')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates && data.rates.USD) {
+          setUsdRate(1 / data.rates.USD); // KRW → USD 환율
+        }
+      });
+  }, []);
+
+  // 글로벌 BTC/USD 시세 가져오기 (코인게코)
+  useEffect(() => {
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.bitcoin && data.bitcoin.usd) {
+          setBtcUsd(data.bitcoin.usd);
+        }
+      });
+  }, []);
 
   return (
     <>
@@ -187,11 +218,14 @@ function App() {
         <Sidebar
           user={user}
           priceInfo={priceInfo}
+          btcUsd={btcUsd}
+          usdRate={usdRate}
           greetingOut={greetingOut}
           theme={theme}
+          lastChartPrice={lastChartPrice}
         />
         <main style={{ flex: 1, padding: '48px 32px 0 32px', position: 'relative' }}>
-          <Chart theme={theme} />
+          <Chart theme={theme} usdRate={usdRate} setLastChartPrice={setLastChartPrice} />
         </main>
       </div>
 
